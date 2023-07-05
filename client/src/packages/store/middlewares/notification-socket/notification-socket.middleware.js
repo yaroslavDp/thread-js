@@ -37,7 +37,9 @@ const notificationSocket = ({ dispatch }) => {
   notificationSocketInstance.on(NotificationSocketEvent.NEW_POST, post => {
     dispatch(threadActionCreator.applyPost(post));
   });
-
+  notificationSocketInstance.on(NotificationSocketEvent.REACT_POST, id => {
+    dispatch(threadActionCreator.reactPostSocket(id));
+  });
   return next => action => {
     if (notificationActionCreator.joinRoom.match(action)) {
       notificationSocketInstance.emit(

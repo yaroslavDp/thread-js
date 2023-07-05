@@ -70,51 +70,51 @@ const toggleExpandedPost = createAsyncThunk(
   }
 );
 
+const reactPostSocket = createAsyncThunk(
+  ActionType.REACT,
+  async (postId, { getState, extra: { services } }) => {
+    const updatePost = await services.post.getPost(postId);
+
+    const {
+      posts: { posts }
+    } = getState();
+    const updatedPosts = posts.map(post => (post.id === postId ? updatePost : post));
+
+    return { posts: updatedPosts };
+  }
+);
+
+const showReactionChanges = (getState, countReaction, postId) => {
+  const mapReaction = post => ({
+    ...post,
+    ...countReaction
+  });
+
+  const {
+    posts: { posts, expandedPost }
+  } = getState();
+  const updated = posts.map(post =>
+    post.id === postId ? mapReaction(post) : post
+  );
+  const updatedExpandedPost =
+    expandedPost?.id === postId ? mapReaction(expandedPost) : undefined;
+
+  return { posts: updated, expandedPost: updatedExpandedPost };
+};
+
 const likePost = createAsyncThunk(
   ActionType.REACT,
   async (postId, { getState, extra: { services } }) => {
-    const { id } = await services.post.likePost(postId);
-    const diff = id ? 1 : -1; // if ID exists then the post was liked, otherwise - like was removed
-
-    const mapLikes = post => ({
-      ...post,
-      likeCount: Number(post.likeCount) + diff // diff is taken from the current closure
-    });
-
-    const {
-      posts: { posts, expandedPost }
-    } = getState();
-    const updated = posts.map(post =>
-      post.id === postId ? mapLikes(post) : post
-    );
-    const updatedExpandedPost =
-      expandedPost?.id === postId ? mapLikes(expandedPost) : undefined;
-
-    return { posts: updated, expandedPost: updatedExpandedPost };
+    const countReaction = await services.post.likePost(postId);
+    return showReactionChanges(getState, countReaction, postId);
   }
 );
 
 const dislikePost = createAsyncThunk(
   ActionType.REACT,
   async (postId, { getState, extra: { services } }) => {
-    const { id } = await services.post.dislikePost(postId);
-    const diff = id ? 1 : -1; // if ID exists then the post was liked, otherwise - like was removed
-
-    const mapDislikes = post => ({
-      ...post,
-      likeCount: Number(post.likeCount) + diff // diff is taken from the current closure
-    });
-
-    const {
-      posts: { posts, expandedPost }
-    } = getState();
-    const updated = posts.map(post =>
-      post.id === postId ? mapDislikes(post) : post
-    );
-    const updatedExpandedPost =
-      expandedPost?.id === postId ? mapDislikes(expandedPost) : undefined;
-
-    return { posts: updated, expandedPost: updatedExpandedPost };
+    const countReaction = await services.post.dislikePost(postId);
+    return showReactionChanges(getState, countReaction, postId);
   }
 );
 
@@ -154,5 +154,6 @@ export {
   likePost,
   loadMorePosts,
   loadPosts,
+  reactPostSocket,
   toggleExpandedPost
 };
