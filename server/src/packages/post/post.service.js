@@ -20,7 +20,6 @@ class PostService {
   }
 
   async setReaction(userId, { postId, isLike = true }) {
-    // define the callback for future use as a promise
     const updateOrDelete = react => {
       return react.isLike === isLike
         ? this._postReactionRepository.deleteById(react.id)
