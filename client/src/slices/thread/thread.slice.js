@@ -49,7 +49,12 @@ const { reducer, actions, name } = createSlice({
       state.expandedPost = post;
     });
     builder.addMatcher(
-      isAnyOf(likePost.fulfilled, dislikePost.fulfilled, addComment.fulfilled, reactPostSocket.fulfilled),
+      isAnyOf(
+        dislikePost.fulfilled,
+        likePost.fulfilled,
+        addComment.fulfilled,
+        reactPostSocket.fulfilled
+      ),
       (state, action) => {
         const { posts, expandedPost } = action.payload;
         state.posts = posts;

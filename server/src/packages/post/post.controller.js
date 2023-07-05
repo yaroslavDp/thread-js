@@ -58,7 +58,7 @@ class PostController extends Controller {
       request.body
     );
 
-    const { likeCount, dislikeCount, id } = this.#postService.getById(request.body.postId);
+    const { likeCount, dislikeCount, id } = await this.#postService.getById(request.body.postId);
 
     if (reaction.post && reaction.post.userId !== request.user.id) {
       // notify a user if someone (not himself) liked his post
