@@ -60,6 +60,15 @@ class Post {
       }
     );
   }
+  
+  deletePost(id) {
+    return this._http.load(
+      `${this._apiPath}${ApiPath.POSTS}${PostsApiPath.ROOT}${id}`,
+      {
+        method: HttpMethod.DELETE,
+      }
+    );
+  }
 }
 
 export { Post };

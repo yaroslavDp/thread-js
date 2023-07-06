@@ -2,6 +2,7 @@ import {
   addComment,
   applyPost,
   createPost,
+  deletePost,
   dislikePost,
   likePost,
   loadMorePosts,
@@ -20,6 +21,7 @@ const allActions = {
   toggleExpandedPost,
   dislikePost,
   likePost,
+  deletePost,
   reactPostSocket,
   addComment
 };
