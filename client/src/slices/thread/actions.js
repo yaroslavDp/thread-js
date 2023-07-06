@@ -118,6 +118,13 @@ const dislikePost = createAsyncThunk(
   }
 );
 
+const deletePost = createAsyncThunk(
+  ActionType.DELETE_POST,
+  async (id, { extra: { services } }) => {
+    await services.post.deletePost(id);
+    return id;
+  }
+);
 const addComment = createAsyncThunk(
   ActionType.COMMENT,
   async (request, { getState, extra: { services } }) => {
@@ -150,6 +157,7 @@ export {
   addComment,
   applyPost,
   createPost,
+  deletePost,
   dislikePost,
   likePost,
   loadMorePosts,
