@@ -56,15 +56,12 @@ const Thread = () => {
   );
 
   const handleToggleShowPostsFilter = useCallback(() => {
-    const currentUserId =
-      showOwnPosts || showLikedByOwnPosts ? userId : undefined;
+    const currentUserId = showOwnPosts || showLikedByOwnPosts ? userId : undefined;
 
     showLikedByOwnPosts
       ? handleShowLikedByOwnPosts(currentUserId)
       : handleShownOwnPosts(currentUserId);
-
-    handleShownOwnPosts(currentUserId);
-  }, [handleShownOwnPosts, showOwnPosts, userId, showLikedByOwnPosts, handleShowLikedByOwnPosts]);
+  }, [showOwnPosts, userId, showLikedByOwnPosts, handleShowLikedByOwnPosts, handleShownOwnPosts]);
 
   useEffect(() => {
     handleToggleShowPostsFilter();
@@ -155,7 +152,7 @@ const Thread = () => {
           ))}
         </InfiniteScroll>
       </div>
-      {expandedPost && <ExpandedPost onSharePost={handleSharePost} />}
+      {expandedPost && <ExpandedPost onSharePost={handleSharePost} onDeletePost={handlePostDelete} userId={userId} />}
       {sharedPostId && (
         <SharedPostLink
           postId={sharedPostId}
