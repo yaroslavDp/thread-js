@@ -84,20 +84,20 @@ const reactPostSocket = createAsyncThunk(
   }
 );
 
-const showReactionChanges = (getState, countReaction, postId) => {
-  const mapReaction = post => ({
+const showChange = (getState, change, postId) => {
+  const mapChange = post => ({
     ...post,
-    ...countReaction
+    ...change
   });
 
   const {
     posts: { posts, expandedPost }
   } = getState();
   const updated = posts.map(post =>
-    post.id === postId ? mapReaction(post) : post
+    post.id === postId ? mapChange(post) : post
   );
   const updatedExpandedPost =
-    expandedPost?.id === postId ? mapReaction(expandedPost) : undefined;
+    expandedPost?.id === postId ? mapChange(expandedPost) : undefined;
 
   return { posts: updated, expandedPost: updatedExpandedPost };
 };
@@ -106,7 +106,7 @@ const likePost = createAsyncThunk(
   ActionType.REACT,
   async (postId, { getState, extra: { services } }) => {
     const countReaction = await services.post.likePost(postId);
-    return showReactionChanges(getState, countReaction, postId);
+    return showChange(getState, countReaction, postId);
   }
 );
 
@@ -114,15 +114,28 @@ const dislikePost = createAsyncThunk(
   ActionType.REACT,
   async (postId, { getState, extra: { services } }) => {
     const countReaction = await services.post.dislikePost(postId);
-    return showReactionChanges(getState, countReaction, postId);
+    return showChange(getState, countReaction, postId);
+  }
+);
+
+const updatePost = createAsyncThunk(
+  ActionType.UPDATE_POST,
+  async (post, { getState, extra: { services } }) => {
+    const updatedPost = await services.post.updatePost(post);
+    return showChange(getState, updatedPost, post.id);
   }
 );
 
 const deletePost = createAsyncThunk(
   ActionType.DELETE_POST,
-  async (id, { extra: { services } }) => {
+  async (id, { getState, extra: { services } }) => {
     await services.post.deletePost(id);
-    return id;
+    const {
+      posts: { posts }
+    } = getState();
+    const updated = posts.filter(post => post.id !== id);
+
+    return { posts: updated };
   }
 );
 const addComment = createAsyncThunk(
@@ -163,5 +176,6 @@ export {
   loadMorePosts,
   loadPosts,
   reactPostSocket,
-  toggleExpandedPost
+  toggleExpandedPost,
+  updatePost
 };
