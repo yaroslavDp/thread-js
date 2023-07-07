@@ -35,6 +35,12 @@ const Post = ({ post, userId, onPostLike, onPostDislike, onExpandedPostToggle, o
 
   return (
     <div className={styles.card}>
+      {user.id === userId && (
+        <div className={styles.userPost}>
+          <IconButton iconName={IconName.EDIT} onClick={() => {}} />
+          <IconButton iconName={IconName.DELETE} onClick={handleDeletePost} />
+        </div>
+      )}
       {image && <Image src={image.link} alt="post image" />}
       <div className={styles.content}>
         <div className={styles.meta}>
@@ -62,11 +68,6 @@ const Post = ({ post, userId, onPostLike, onPostDislike, onExpandedPostToggle, o
           iconName={IconName.SHARE_ALTERNATE}
           onClick={handleSharePost}
         />
-        {user.id === userId && (
-          <div className={styles.delete}>
-            <IconButton iconName={IconName.DELETE} onClick={handleDeletePost} />
-          </div>
-        )}
       </div>
     </div>
   );
