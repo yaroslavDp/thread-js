@@ -33,6 +33,11 @@ class PostController extends Controller {
       [ControllerHook.HANDLER]: this.create
     });
     this.addRoute({
+      method: HttpMethod.PUT,
+      url: PostsApiPath.$ID,
+      [ControllerHook.HANDLER]: this.update
+    });
+    this.addRoute({
       method: HttpMethod.DELETE,
       url: PostsApiPath.$ID,
       [ControllerHook.HANDLER]: this.delete
@@ -57,6 +62,18 @@ class PostController extends Controller {
     return reply.status(HttpCode.CREATED).send(post);
   };
 
+  update = async (request, reply) => {
+    try {
+      const response = await this.#postService.updatePost(
+        request.user.id,
+        request.body
+      );
+      return response || reply.status(HttpCode.NOT_FOUND);
+    } catch (error) {
+      return reply.status(HttpCode.FORBIDDEN).send(error.message);
+    }
+  };
+  
   delete = async (request, reply) => {
     try {
       const response = await this.#postService.deletePost(

@@ -11,7 +11,8 @@ import {
   loadMorePosts,
   loadPosts,
   reactPostSocket,
-  toggleExpandedPost
+  toggleExpandedPost,
+  updatePost
 } from './actions.js';
 
 const initialState = {
@@ -49,13 +50,12 @@ const { reducer, actions, name } = createSlice({
 
       state.expandedPost = post;
     });
-    builder.addCase(deletePost.fulfilled, (state, action) => {
-      const id = action.payload;
-      state.posts = state.posts.filter(item => item.id !== id);
-    });
+
     builder.addMatcher(
       isAnyOf(
         dislikePost.fulfilled,
+        updatePost.fulfilled,
+        deletePost.fulfilled,
         likePost.fulfilled,
         addComment.fulfilled,
         reactPostSocket.fulfilled

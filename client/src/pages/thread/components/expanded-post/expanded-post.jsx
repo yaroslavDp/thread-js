@@ -9,7 +9,7 @@ import { actions as threadActionCreator } from '~/slices/thread/thread.js';
 
 import { getSortedComments } from './libs/helpers/helpers.js';
 
-const ExpandedPost = ({ onSharePost, onDeletePost, userId }) => {
+const ExpandedPost = ({ onSharePost, onDeletePost, onUpdatePostToggle, userId }) => {
   const dispatch = useDispatch();
   const { post } = useSelector(state => ({
     post: state.posts.expandedPost
@@ -52,6 +52,7 @@ const ExpandedPost = ({ onSharePost, onDeletePost, userId }) => {
             onPostLike={handlePostLike}
             onPostDislike={handlePostDislike}
             onExpandedPostToggle={handleExpandedPostToggle}
+            onUpdatePostToggle={onUpdatePostToggle}
             onDeletePost={onDeletePost}
             onSharePost={onSharePost}
           />
@@ -73,6 +74,7 @@ const ExpandedPost = ({ onSharePost, onDeletePost, userId }) => {
 ExpandedPost.propTypes = {
   onSharePost: PropTypes.func.isRequired,
   onDeletePost: PropTypes.func.isRequired,
+  onUpdatePostToggle: PropTypes.func.isRequired,
   userId: PropTypes.number.isRequired
 };
 
