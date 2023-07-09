@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import PropTypes from 'prop-types';
 
 import { Button } from '~/libs/components/button/button.jsx';
@@ -15,7 +16,7 @@ import styles from './styles.module.scss';
 const UpdatePost = ({ post, onUploadImage, onUpdatePostToggle }) => {
   const dispatch = useDispatch();
 
-  const [image, setImage] = useState();
+  const [image, setImage] = useState(post.image);
   const [isUploading, setIsUploading] = useState(false);
 
   const { control, handleSubmit, reset } = useAppForm({
@@ -48,8 +49,8 @@ const UpdatePost = ({ post, onUploadImage, onUpdatePostToggle }) => {
       const [file] = target.files;
 
       onUploadImage(file)
-        .then(({ id: imageId, link: imageLink }) => {
-          setImage({ imageId, imageLink });
+        .then(({ id, link }) => {
+          setImage({ id, link });
         })
         .catch(() => {
           // TODO: show error
@@ -69,11 +70,11 @@ const UpdatePost = ({ post, onUploadImage, onUpdatePostToggle }) => {
           rows={5}
           control={control}
         />
-        {image?.link ? (
-          <div>
-            <Image src={image?.link} alt="post image" size={ImageSize.SMALL} />
-          </div>
-        ) : (
+        {image?.link &&
+          <div className={styles.imageWrapper}>
+            <Image className={styles.image} src={image?.link} alt="post image" size={ImageSize.SMALL} />
+          </div> }
+     
           <Button color="teal" isLoading={isUploading} isDisabled={isUploading}>
             <label className={styles.btnImgLabel}>
               Attach image
@@ -85,7 +86,6 @@ const UpdatePost = ({ post, onUploadImage, onUpdatePostToggle }) => {
               />
             </label>
           </Button>
-        )}
         <div className={styles.btnWrapper}>
           <Button
             color={ButtonColor.TEAL}
