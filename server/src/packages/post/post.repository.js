@@ -12,7 +12,26 @@ class PostRepository extends AbstractRepository {
   }
 
   getPosts(filter) {
-    const { from: offset, count: limit, userId } = filter;
+    const { from: offset, count: limit, userId, likedByOwn } = filter;
+
+    if(likedByOwn){
+      return this.model
+        .query()
+        .select(
+          'posts.*',
+          getCommentsCountQuery(this.model),
+          getReactionsQuery(this.model)(true),
+          getReactionsQuery(this.model)(false)
+        )
+        .joinRelated('postReactions')
+        .where('postReactions.isLike', true)
+        .where('postReactions.userId', userId)
+        .where({ 'deletedAt': null })
+        .withGraphFetched('[image, user.image]')
+        .orderBy('createdAt', 'desc')
+        .offset(offset)
+        .limit(limit);
+    }
 
     return this.model
       .query()
@@ -23,6 +42,7 @@ class PostRepository extends AbstractRepository {
         getReactionsQuery(this.model)(false)
       )
       .where(getWhereUserIdQuery(userId))
+      .where({ 'deletedAt': null })
       .withGraphFetched('[image, user.image]')
       .orderBy('createdAt', 'desc')
       .offset(offset)

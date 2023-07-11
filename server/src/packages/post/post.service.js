@@ -19,8 +19,24 @@ class PostService {
     });
   }
 
+  async updatePost(userId, post) {
+    const postForUpdate = await this._postRepository.getById(post.id);
+    if (postForUpdate?.userId !== userId) {
+      throw new Error('This post is not yours!');
+    }
+    return await this._postRepository.updateById(post.id, post);
+  }
+
+  async deletePost(postId, userId) {
+    const post = await this._postRepository.getById(postId);
+    if (post?.userId !== userId) {
+      throw new Error('This post is not yours!');
+    }
+    const deletedPost = await this._postRepository.softDeleteById(postId);
+    return deletedPost === 1 ? true : false;
+  }
+
   async setReaction(userId, { postId, isLike = true }) {
-    // define the callback for future use as a promise
     const updateOrDelete = react => {
       return react.isLike === isLike
         ? this._postReactionRepository.deleteById(react.id)

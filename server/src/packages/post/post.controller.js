@@ -34,6 +34,16 @@ class PostController extends Controller {
     });
     this.addRoute({
       method: HttpMethod.PUT,
+      url: PostsApiPath.$ID,
+      [ControllerHook.HANDLER]: this.update
+    });
+    this.addRoute({
+      method: HttpMethod.DELETE,
+      url: PostsApiPath.$ID,
+      [ControllerHook.HANDLER]: this.delete
+    });
+    this.addRoute({
+      method: HttpMethod.PUT,
       url: PostsApiPath.REACT,
       [ControllerHook.HANDLER]: this.react
     });
@@ -52,20 +62,53 @@ class PostController extends Controller {
     return reply.status(HttpCode.CREATED).send(post);
   };
 
+  update = async (request, reply) => {
+    try {
+      const response = await this.#postService.updatePost(
+        request.user.id,
+        request.body
+      );
+      return response || reply.status(HttpCode.NOT_FOUND);
+    } catch (error) {
+      return reply.status(HttpCode.FORBIDDEN).send(error.message);
+    }
+  };
+  
+  delete = async (request, reply) => {
+    try {
+      const response = await this.#postService.deletePost(
+        request.params.id,
+        request.user.id
+      );
+      return response || reply.status(HttpCode.NOT_FOUND);
+    } catch (error) {
+      return reply.status(HttpCode.FORBIDDEN).send(error.message);
+    }
+  };
+  
   react = async request => {
     const reaction = await this.#postService.setReaction(
       request.user.id,
       request.body
     );
 
+    const { likeCount, dislikeCount, id } = await this.#postService.getById(request.body.postId);
+
     if (reaction.post && reaction.post.userId !== request.user.id) {
       // notify a user if someone (not himself) liked his post
+      const newReact = request.body.isLike
+        ? NotificationSocketEvent.LIKE_POST
+        : NotificationSocketEvent.DISLIKE_POST;
       request.io
         .of(SocketNamespace.NOTIFICATION)
         .to(`${reaction.post.userId}`)
-        .emit(NotificationSocketEvent.LIKE_POST);
+        .emit(newReact);
     }
-    return reaction;
+
+    request.io
+      .of(SocketNamespace.NOTIFICATION)
+      .emit(NotificationSocketEvent.REACT_POST, id);
+    return { likeCount, dislikeCount };
   };
 }
 

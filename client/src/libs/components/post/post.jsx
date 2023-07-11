@@ -10,7 +10,7 @@ import { IconButton } from '../icon-button/icon-button.jsx';
 import { Image } from '../image/image.jsx';
 import styles from './styles.module.scss';
 
-const Post = ({ post, onPostLike, onExpandedPostToggle, onSharePost }) => {
+const Post = ({ post, userId, onPostLike, onPostDislike, onExpandedPostToggle, onSharePost, onDeletePost, onUpdatePostToggle }) => {
   const {
     id,
     image,
@@ -24,14 +24,24 @@ const Post = ({ post, onPostLike, onExpandedPostToggle, onSharePost }) => {
   const date = getFromNowTime(createdAt);
 
   const handlePostLike = useCallback(() => onPostLike(id), [id, onPostLike]);
+  const handlePostDislike = useCallback(() => onPostDislike(id), [id, onPostDislike]);
   const handleExpandedPostToggle = useCallback(
     () => onExpandedPostToggle(id),
     [id, onExpandedPostToggle]
   );
   const handleSharePost = useCallback(() => onSharePost(id), [id, onSharePost]);
+  const handleUpdatePostToggle = useCallback(() => onUpdatePostToggle(post),[post, onUpdatePostToggle]);
+
+  const handleDeletePost = useCallback(() => onDeletePost(id), [id, onDeletePost]);
 
   return (
     <div className={styles.card}>
+      {user.id === userId && (
+        <div className={styles.userPost}>
+          <IconButton iconName={IconName.EDIT} onClick={handleUpdatePostToggle} />
+          <IconButton iconName={IconName.DELETE} onClick={handleDeletePost} />
+        </div>
+      )}
       {image && <Image src={image.link} alt="post image" />}
       <div className={styles.content}>
         <div className={styles.meta}>
@@ -48,7 +58,7 @@ const Post = ({ post, onPostLike, onExpandedPostToggle, onSharePost }) => {
         <IconButton
           iconName={IconName.THUMBS_DOWN}
           label={dislikeCount}
-          onClick={() => {}}
+          onClick={handlePostDislike}
         />
         <IconButton
           iconName={IconName.COMMENT}
@@ -66,9 +76,13 @@ const Post = ({ post, onPostLike, onExpandedPostToggle, onSharePost }) => {
 
 Post.propTypes = {
   post: postType.isRequired,
+  userId: PropTypes.number.isRequired,
   onPostLike: PropTypes.func.isRequired,
+  onPostDislike: PropTypes.func.isRequired,
   onExpandedPostToggle: PropTypes.func.isRequired,
-  onSharePost: PropTypes.func.isRequired
+  onSharePost: PropTypes.func.isRequired,
+  onDeletePost: PropTypes.func.isRequired,
+  onUpdatePostToggle: PropTypes.func.isRequired
 };
 
 export { Post };

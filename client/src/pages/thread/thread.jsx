@@ -18,7 +18,8 @@ import { actions as threadActionCreator } from '~/slices/thread/thread.js';
 import {
   AddPost,
   ExpandedPost,
-  SharedPostLink
+  SharedPostLink,
+  UpdatePost
 } from './components/components.js';
 import { DEFAULT_THREAD_TOOLBAR } from './libs/common/constants.js';
 import { usePostsFilter } from './libs/hooks/use-posts-filter/use-posts-filter.js';
@@ -35,9 +36,11 @@ const Thread = () => {
     userId: state.profile.user.id
   }));
 
-  const { postsFilter, handleShownOwnPosts } = usePostsFilter();
+  const { postsFilter, handleShownOwnPosts, handleShowLikedByOwnPosts } = usePostsFilter();
 
   const [sharedPostId, setSharedPostId] = useState();
+
+  const [updatePost, setUpdatePost] = useState(null);
 
   const { control, watch } = useAppForm({
     defaultValues: DEFAULT_THREAD_TOOLBAR,
@@ -46,6 +49,8 @@ const Thread = () => {
 
   const showOwnPosts = watch(ThreadToolbarKey.SHOW_OWN_POSTS);
 
+  const showLikedByOwnPosts = watch(ThreadToolbarKey.SHOW_LIKED_BY_OWN_POST);
+
   const handlePostsLoad = useCallback(
     filtersPayload => {
       dispatch(threadActionCreator.loadPosts(filtersPayload));
@@ -53,15 +58,17 @@ const Thread = () => {
     [dispatch]
   );
 
-  const handleToggleShowOwnPosts = useCallback(() => {
-    const currentUserId = showOwnPosts ? userId : undefined;
+  const handleToggleShowPostsFilter = useCallback(() => {
+    const currentUserId = showOwnPosts || showLikedByOwnPosts ? userId : undefined;
 
-    handleShownOwnPosts(currentUserId);
-  }, [handleShownOwnPosts, showOwnPosts, userId]);
+    showLikedByOwnPosts
+      ? handleShowLikedByOwnPosts(currentUserId)
+      : handleShownOwnPosts(currentUserId);
+  }, [showOwnPosts, userId, showLikedByOwnPosts, handleShowLikedByOwnPosts, handleShownOwnPosts]);
 
   useEffect(() => {
-    handleToggleShowOwnPosts();
-  }, [showOwnPosts, handleToggleShowOwnPosts]);
+    handleToggleShowPostsFilter();
+  }, [showOwnPosts, showLikedByOwnPosts, handleToggleShowPostsFilter]);
 
   useEffect(() => {
     handlePostsLoad(postsFilter);
@@ -69,6 +76,11 @@ const Thread = () => {
 
   const handlePostLike = useCallback(
     id => dispatch(threadActionCreator.likePost(id)),
+    [dispatch]
+  );
+
+  const handlePostDislike = useCallback(
+    id => dispatch(threadActionCreator.dislikePost(id)),
     [dispatch]
   );
 
@@ -86,6 +98,13 @@ const Thread = () => {
     filtersPayload => {
       dispatch(threadActionCreator.loadMorePosts(filtersPayload));
     },
+    [dispatch]
+  );
+
+  const handleUpdatePostToggle = useCallback(post => setUpdatePost(post), []);
+
+  const handlePostDelete = useCallback(
+    id => dispatch(threadActionCreator.deletePost(id)),
     [dispatch]
   );
 
@@ -109,6 +128,11 @@ const Thread = () => {
             control={control}
             label="Show only my posts"
           />
+          <Checkbox
+            name={ThreadToolbarKey.SHOW_LIKED_BY_OWN_POST}
+            control={control}
+            label="Show posts which were liked by me"
+          />
         </div>
       </form>
       <div className={styles.posts}>
@@ -122,19 +146,30 @@ const Thread = () => {
           {posts.map(post => (
             <Post
               post={post}
+              userId={userId}
               onPostLike={handlePostLike}
+              onPostDislike={handlePostDislike}
               onExpandedPostToggle={handleExpandedPostToggle}
               onSharePost={handleSharePost}
+              onDeletePost={handlePostDelete}
+              onUpdatePostToggle={handleUpdatePostToggle}
               key={post.id}
             />
           ))}
         </InfiniteScroll>
       </div>
-      {expandedPost && <ExpandedPost onSharePost={handleSharePost} />}
+      {expandedPost && <ExpandedPost onSharePost={handleSharePost} onUpdatePostToggle={handleUpdatePostToggle} onDeletePost={handlePostDelete} userId={userId} />}
       {sharedPostId && (
         <SharedPostLink
           postId={sharedPostId}
           onClose={handleCloseSharedPostLink}
+        />
+      )}
+      {updatePost && (
+        <UpdatePost
+          post={updatePost}
+          onUpdatePostToggle={handleUpdatePostToggle}
+          onUploadImage={handleUploadImage}
         />
       )}
     </div>

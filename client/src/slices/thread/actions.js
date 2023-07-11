@@ -70,30 +70,74 @@ const toggleExpandedPost = createAsyncThunk(
   }
 );
 
-const likePost = createAsyncThunk(
+const reactPostSocket = createAsyncThunk(
   ActionType.REACT,
   async (postId, { getState, extra: { services } }) => {
-    const { id } = await services.post.likePost(postId);
-    const diff = id ? 1 : -1; // if ID exists then the post was liked, otherwise - like was removed
-
-    const mapLikes = post => ({
-      ...post,
-      likeCount: Number(post.likeCount) + diff // diff is taken from the current closure
-    });
+    const updatePost = await services.post.getPost(postId);
 
     const {
-      posts: { posts, expandedPost }
+      posts: { posts }
     } = getState();
-    const updated = posts.map(post =>
-      post.id === postId ? mapLikes(post) : post
-    );
-    const updatedExpandedPost =
-      expandedPost?.id === postId ? mapLikes(expandedPost) : undefined;
+    const updatedPosts = posts.map(post => (post.id === postId ? updatePost : post));
 
-    return { posts: updated, expandedPost: updatedExpandedPost };
+    return { posts: updatedPosts };
   }
 );
 
+const showChange = (getState, change, postId) => {
+  const mapChange = post => ({
+    ...post,
+    ...change
+  });
+
+  const {
+    posts: { posts, expandedPost }
+  } = getState();
+  const updated = posts.map(post =>
+    post.id === postId ? mapChange(post) : post
+  );
+  const updatedExpandedPost =
+    expandedPost?.id === postId ? mapChange(expandedPost) : undefined;
+
+  return { posts: updated, expandedPost: updatedExpandedPost };
+};
+
+const likePost = createAsyncThunk(
+  ActionType.REACT,
+  async (postId, { getState, extra: { services } }) => {
+    const countReaction = await services.post.likePost(postId);
+    return showChange(getState, countReaction, postId);
+  }
+);
+
+const dislikePost = createAsyncThunk(
+  ActionType.REACT,
+  async (postId, { getState, extra: { services } }) => {
+    const countReaction = await services.post.dislikePost(postId);
+    return showChange(getState, countReaction, postId);
+  }
+);
+
+const updatePost = createAsyncThunk(
+  ActionType.UPDATE_POST,
+  async (post, { getState, extra: { services } }) => {
+    const updatedPost = await services.post.updatePost(post);
+    return showChange(getState, updatedPost, post.id);
+  }
+);
+
+const deletePost = createAsyncThunk(
+  ActionType.DELETE_POST,
+  async (id, { getState, extra: { services } }) => {
+    await services.post.deletePost(id);
+    const {
+      posts: { posts }
+    } = getState();
+    const updated = posts.filter(post => post.id !== id);
+
+    return { posts: updated };
+  }
+);
 const addComment = createAsyncThunk(
   ActionType.COMMENT,
   async (request, { getState, extra: { services } }) => {
@@ -126,8 +170,12 @@ export {
   addComment,
   applyPost,
   createPost,
+  deletePost,
+  dislikePost,
   likePost,
   loadMorePosts,
   loadPosts,
-  toggleExpandedPost
+  reactPostSocket,
+  toggleExpandedPost,
+  updatePost
 };
